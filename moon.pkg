@@ -11,12 +11,15 @@ import {
 // so `moon build --target native src/main` does not actually call BLAS. However
 // the cc-link-flags below are still passed to the linker for any build that
 // depends on this package (src/main does, via payoff -> nash). The default is
-// macOS-only, so Linux/Windows must override MOON_CC_LINK_FLAGS for *both*
-// `moon build` and `moon test` to keep the link step from rejecting the flag.
-// `moon test` additionally requires the override to provide real BLAS symbols.
-// CI exports the same value on both Build and Test steps:
+// macOS-only — Linux/Windows must replace it before invoking moon.
+//
+// MoonBit exposes no env var to override link flags (only MOON_CC / MOON_AR
+// reach the build), so CI rewrites this file (and the vendored mizchi/numbt,
+// mizchi/blas, mizchi/blas/bench packages) in place via
+// scripts/configure_native_link_flags.sh before each `moon build` / `moon test`.
+// Per-OS replacements:
 //   Linux:   -lopenblas -llapack -lm
-//   macOS:   -framework Accelerate (matches default below; no override needed)
+//   macOS:   -framework Accelerate (matches default below; no rewrite needed)
 //   Windows: -LC:/msys64/mingw64/lib -lopenblas (MSYS2-installed; CI sets
 //            MOON_CC to a mingw-w64 gcc.exe; cl.exe would need MSVC
 //            `/link /LIBPATH:... openblas.lib` syntax instead).
