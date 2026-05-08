@@ -30,7 +30,7 @@ Add to `moon.mod.json`:
 ```json
 {
   "deps": {
-    "pkdxtools/nash-mbt": "0.1.0"
+    "ushironoko/nash-mbt": "0.1.0"
   }
 }
 ```
@@ -39,9 +39,14 @@ Import in `moon.pkg`:
 
 ```moonbit
 import {
-  "pkdxtools/nash-mbt" @nash,
+  "ushironoko/nash-mbt" @nash,
 }
 ```
+
+> The GitHub repo lives at [`pkdxtools/nash-mbt`](https://github.com/pkdxtools/nash-mbt);
+> the mooncakes.io package lives under `ushironoko/nash-mbt` because
+> mooncakes.io currently requires the publishing user's name to match the
+> module path's first segment.
 
 ### BLAS dependency note
 
