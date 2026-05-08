@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            label: darwin-arm64
+          - os: ubuntu-22.04
+            label: linux-x86_64
+          - os: windows-2022
+            label: windows-x86_64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install MoonBit (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Install MoonBit (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+          irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
+          echo "$env:USERPROFILE\.moon\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+
+      - name: Install BLAS (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopenblas-dev liblapack-dev
+
+      - name: Install BLAS (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          C:\msys64\usr\bin\pacman.exe -Sy --noconfirm --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-openblas
+          Add-Content $env:GITHUB_PATH "C:\msys64\mingw64\bin"
+
+      - name: Configure MoonBit compiler (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo "MOON_CC=C:/msys64/mingw64/bin/gcc.exe" >> "$GITHUB_ENV"
+
+      - name: moon update
+        run: moon update
+        shell: bash
+
+      - name: Configure native link flags
+        run: bash scripts/configure_native_link_flags.sh
+        shell: bash
+
+      - name: moon check
+        run: moon check --target native
+        shell: bash
+
+      - name: moon test
+        run: moon test --target native
+        shell: bash
+
+      - name: Build examples (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          moon run examples/rock_paper_scissors --target native
+          moon run examples/fictitious_play_demo --target native
+        shell: bash
+
+      - name: Build examples (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # On Windows, just verify they build (avoid running due to runtime DLL paths)
+          moon build --target native examples/rock_paper_scissors
+          moon build --target native examples/fictitious_play_demo
