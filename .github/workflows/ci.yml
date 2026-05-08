@@ -60,6 +60,15 @@ jobs:
         run: moon update
         shell: bash
 
+      # `moon update` only refreshes the registry index — actual download to
+      # .mooncakes/ happens lazily on the next moon command. Force the fetch
+      # now so configure_native_link_flags.sh can rewrite the vendored mizchi
+      # numbt / blas moon.pkg files (otherwise only the root moon.pkg is
+      # rewritten and Windows fails to find cblas.h at the MSYS2 path).
+      - name: Fetch dependencies
+        run: moon install
+        shell: bash
+
       - name: Configure native link flags
         run: bash scripts/configure_native_link_flags.sh
         shell: bash
