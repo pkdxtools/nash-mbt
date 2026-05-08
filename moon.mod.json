@@ -1,6 +1,6 @@
 {
   "name": "ushironoko/nash-mbt",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "description": "Zero-sum two-player matrix game solver in MoonBit: tableau simplex LP, Fictitious Play, Multiplicative Weights Update, KL/L1 divergence, exploitability, NashConv.",
   "keywords": [
